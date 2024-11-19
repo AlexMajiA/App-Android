@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">PMDM_tarea_2</string>
+    <string name="botonSensor">Sensor</string>
+    <string name="botonConexion">Conexion</string>
+    <string name="botonGuardar">Guardar</string>
+    <string name="botonCargar">Cargar</string>
 </resources>
