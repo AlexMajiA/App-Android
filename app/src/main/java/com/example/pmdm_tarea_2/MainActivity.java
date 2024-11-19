@@ -3,6 +3,10 @@ package com.example.pmdm_tarea_2;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
+import android.hardware.Sensor;
+import android.hardware.SensorEvent;
+import android.hardware.SensorEventListener;
+import android.hardware.SensorManager;
 import android.net.ConnectivityManager;
 import android.net.NetworkCapabilities;
 import android.os.Build;
@@ -23,10 +27,35 @@ public class MainActivity extends AppCompatActivity {
 
     private TextInputEditText texto;
 
+    private SensorManager sensorManager;
+    private Sensor sensorHumedad;
+    private SensorEventListener listener;
+    private Float humedad;
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
+        sensorHumedad = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
+
+        if (sensorHumedad != null) {
+            listener = new SensorEventListener() {
+                @Override
+                public void onSensorChanged(SensorEvent event) {
+                    if (event.sensor.getType() == Sensor.TYPE_RELATIVE_HUMIDITY) {
+                        System.out.println(event.values[0]);
+                        humedad = event.values[0];
+                    }
+                }
+
+                @Override
+                public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                }
+            };
+        }
 
         webView = findViewById(R.id.webView);
 
@@ -35,9 +64,9 @@ public class MainActivity extends AppCompatActivity {
             @Override
             public void onClick(View view) {
                 if(comprobarInternet()) {
-                    Toast.makeText(MainActivity.this, "Hay internet", Toast.LENGTH_SHORT).show();
+                    muestraToast("Hay internet");
                 } else {
-                    Toast.makeText(MainActivity.this, "No hay internet", Toast.LENGTH_SHORT).show();
+                    muestraToast("No hay internet");
                 }
             }
         });
@@ -46,9 +75,12 @@ public class MainActivity extends AppCompatActivity {
         botonSensor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                if(humedad != null) {
+                    muestraToast("La humedad es " + humedad);
+                } else {
+                    muestraToast("No hay datos de humedad");
+                }
             }
-
-
         });
 
         botonCargar = findViewById(R.id.botonCargar);
@@ -70,6 +102,26 @@ public class MainActivity extends AppCompatActivity {
         texto = findViewById(R.id.textfield);
 
         webView.loadUrl("https://www.google.com");
+    }
+
+    private void muestraToast(String text) {
+        Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (sensorHumedad != null) {
+            sensorManager.registerListener(listener, sensorHumedad, SensorManager.SENSOR_DELAY_NORMAL);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        if (sensorHumedad != null) {
+            sensorManager.unregisterListener(listener);
+        }
     }
 
     private boolean comprobarInternet() {
