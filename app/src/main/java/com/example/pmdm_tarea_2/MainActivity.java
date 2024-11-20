@@ -18,6 +18,13 @@ import android.widget.Toast;
 
 import com.google.android.material.textfield.TextInputEditText;
 
+import java.io.BufferedReader;
+import java.io.FileNotFoundException;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStreamWriter;
+
 public class MainActivity extends AppCompatActivity {
     private WebView webView;
     private Button botonConexion;
@@ -87,7 +94,31 @@ public class MainActivity extends AppCompatActivity {
         botonCargar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+
+                try {
+                    //Abro el archivo en modo de lectura.
+                    InputStreamReader fin = new InputStreamReader(openFileInput("fichero_interno.txt"));
+                    BufferedReader bufferedReader = new BufferedReader(fin);
+
+                    StringBuilder contenido = new StringBuilder();
+                    String linea;
+
+                    while ((linea = bufferedReader.readLine()) != null){
+                        contenido.append(linea).append("\n");
+
+                    }
+                    fin.close();
+
+                    texto.setText(contenido.toString());
+                    Toast.makeText(MainActivity.this, "fichero_interno.txt", Toast.LENGTH_LONG).show();
+
+                } catch (FileNotFoundException e) {
+                    throw new RuntimeException(e);
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
             }
+
 
 
         });
@@ -96,6 +127,24 @@ public class MainActivity extends AppCompatActivity {
         botonGuardar.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
+                String datos = texto.getText().toString();
+                try {
+                    OutputStreamWriter fout = new OutputStreamWriter(openFileOutput("fichero_interno.txt", Context.MODE_PRIVATE));
+
+                    fout.write(datos);
+                    fout.close();
+                    datos = getFileStreamPath("fichero_interno.txt").toString();
+                    Toast.makeText(MainActivity.this, "Se ha escrito correctamente", Toast.LENGTH_SHORT).show();
+                    texto.setText("");
+
+                } catch (FileNotFoundException e) {
+                    //throw new RuntimeException(e);
+                    Toast.makeText(MainActivity.this,"no se ha escrito", Toast.LENGTH_LONG).show();
+                } catch (IOException e) {
+                    throw new RuntimeException(e);
+                }
+
+
             }
         });
 
@@ -103,6 +152,8 @@ public class MainActivity extends AppCompatActivity {
 
         webView.loadUrl("https://www.google.com");
     }
+
+
 
     private void muestraToast(String text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
