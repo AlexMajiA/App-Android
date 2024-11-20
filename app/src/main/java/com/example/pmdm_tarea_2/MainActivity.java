@@ -3,6 +3,7 @@ package com.example.pmdm_tarea_2;
 import androidx.appcompat.app.AppCompatActivity;
 
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
@@ -26,135 +27,138 @@ import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 
 public class MainActivity extends AppCompatActivity {
-    private WebView webView;
-    private Button botonConexion;
-    private Button botonSensor;
-    private Button botonGuardar;
-    private Button botonCargar;
+    private WebView webView; // WebView para mostrar páginas web dentro de la app
+    private Button botonConexion; // Botón para comprobar conexión a Internet
+    private Button botonSensor; // Botón para mostrar la lectura del sensor de humedad
+    private Button botonGuardar; // Botón para guardar texto en SharedPreferences
+    private Button botonCargar; // Botón para cargar texto desde SharedPreferences
 
-    private TextInputEditText texto;
+    private TextInputEditText texto; // Campo de texto donde el usuario introduce información
 
-    private SensorManager sensorManager;
-    private Sensor sensorHumedad;
-    private SensorEventListener listener;
-    private Float humedad;
-
+    private SensorManager sensorManager; // Administrador de sensores
+    private Sensor sensorHumedad; // Sensor de humedad relativa
+    private SensorEventListener listener; // Listener para eventos del sensor
+    private Float humedad; // Variable para almacenar la lectura del sensor de humedad
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main);
+        setContentView(R.layout.activity_main); // Asigna el layout principal
 
+        // Inicializa el SensorManager y el sensor de humedad
         sensorManager = (SensorManager) getSystemService(SENSOR_SERVICE);
         sensorHumedad = sensorManager.getDefaultSensor(Sensor.TYPE_RELATIVE_HUMIDITY);
 
+        // Verifica si el sensor de humedad está disponible, ya que siempre está enviando datos.
         if (sensorHumedad != null) {
             listener = new SensorEventListener() {
                 @Override
                 public void onSensorChanged(SensorEvent event) {
+                    // Compruebo si el evento viene del sensor de humedad
                     if (event.sensor.getType() == Sensor.TYPE_RELATIVE_HUMIDITY) {
-                        System.out.println(event.values[0]);
-                        humedad = event.values[0];
+                        System.out.println(event.values[0]); // Muestra la humedad en consola
+                        humedad = event.values[0]; // Almacena el valor de humedad
                     }
                 }
 
                 @Override
                 public void onAccuracyChanged(Sensor sensor, int accuracy) {
+                    // Método obligatorio, pero no se utiliza en este caso
                 }
             };
         }
 
+        // Inicializa el WebView y carga una página web
         webView = findViewById(R.id.webView);
+        webView.loadUrl("https://www.google.com");
 
+        // Configura los botones
+        cargarBotonConexion(); // Configura el botón para comprobar conexión a Internet
+        cargarBotonSensor(); // Configura el botón para mostrar datos del sensor
+        cargarBotonCargar(); // Configura el botón para cargar datos de SharedPreferences
+        cargarBotonGuardar(); // Configura el botón para guardar datos en SharedPreferences
+
+        texto = findViewById(R.id.textfield); // Asocia el campo de texto desde el layout
+    }
+
+    // Configura el botón de conexión a Internet
+    private void cargarBotonConexion() {
         botonConexion = findViewById(R.id.botonConexion);
         botonConexion.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(comprobarInternet()) {
+                // Comprueba si hay conexión a Internet y muestra un mensaje correspondiente
+                if (comprobarInternet()) {
                     muestraToast("Hay internet");
                 } else {
                     muestraToast("No hay internet");
                 }
             }
         });
+    }
 
+    // Configura el botón para guardar datos en SharedPreferences
+    private void cargarBotonGuardar() {
+        botonGuardar = findViewById(R.id.botonGuardar);
+        botonGuardar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                String datos = texto.getText().toString(); // Obtiene el texto introducido por el usuario
+                if (!texto.getText().toString().isEmpty()) {
+                    // Guarda el texto en SharedPreferences
+                    SharedPreferences preferences = getSharedPreferences("MisPreferencias", Context.MODE_PRIVATE);
+                    SharedPreferences.Editor editor = preferences.edit();
+                    editor.putString("textoGuardado", datos);
+                    editor.apply(); //aplica los cambios
+
+                    //muestra un Toast indicando si se ha guardado el texto, o no has intrododucido nada.
+                    Toast.makeText(MainActivity.this, "Texto guardado", Toast.LENGTH_LONG).show();
+                    texto.setText(""); // Limpia el campo de texto
+                } else {
+                    Toast.makeText(MainActivity.this, "Debes introducir texto", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    // Configura el botón para cargar datos desde SharedPreferences
+    private void cargarBotonCargar() {
+        botonCargar = findViewById(R.id.botonCargar);
+        botonCargar.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (texto.getText().toString().isEmpty()) {
+                    // Recupera el texto guardado desde SharedPreferences, de modo privado y solo desde la app.
+                    SharedPreferences preferences = getSharedPreferences("MisPreferencias", Context.MODE_PRIVATE);
+                    String textoGuardado = preferences.getString("textoGuardado", "No hay datos guardados");
+                    texto.setText(textoGuardado); //Introduce el texto guardado en el campo.
+
+                    //Muestra un Toast si ha leido correctamente, y otro si no has introducido nada.
+                    Toast.makeText(MainActivity.this, "Leyendo desde SharedPreferences", Toast.LENGTH_LONG).show();
+                } else {
+                    Toast.makeText(MainActivity.this, "No hay texto a cargar", Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+    }
+
+    // Configura el botón para mostrar datos del sensor
+    private void cargarBotonSensor() {
         botonSensor = findViewById(R.id.botonSensor);
         botonSensor.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                if(humedad != null) {
+                // Muestra la lectura del sensor o un mensaje si no hay datos disponibles
+                if (humedad != null) {
                     muestraToast("La humedad es " + humedad);
                 } else {
                     muestraToast("No hay datos de humedad");
                 }
             }
         });
-
-        botonCargar = findViewById(R.id.botonCargar);
-        botonCargar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-
-                try {
-                    //Abro el archivo en modo de lectura.
-                    InputStreamReader fin = new InputStreamReader(openFileInput("fichero_interno.txt"));
-                    BufferedReader bufferedReader = new BufferedReader(fin);
-
-                    StringBuilder contenido = new StringBuilder();
-                    String linea;
-
-                    while ((linea = bufferedReader.readLine()) != null){
-                        contenido.append(linea).append("\n");
-
-                    }
-                    fin.close();
-
-                    texto.setText(contenido.toString());
-                    Toast.makeText(MainActivity.this, "fichero_interno.txt", Toast.LENGTH_LONG).show();
-
-                } catch (FileNotFoundException e) {
-                    throw new RuntimeException(e);
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-
-
-
-        });
-
-        botonGuardar = findViewById(R.id.botonGuardar);
-        botonGuardar.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                String datos = texto.getText().toString();
-                try {
-                    OutputStreamWriter fout = new OutputStreamWriter(openFileOutput("fichero_interno.txt", Context.MODE_PRIVATE));
-
-                    fout.write(datos);
-                    fout.close();
-                    datos = getFileStreamPath("fichero_interno.txt").toString();
-                    Toast.makeText(MainActivity.this, "Se ha escrito correctamente", Toast.LENGTH_SHORT).show();
-                    texto.setText("");
-
-                } catch (FileNotFoundException e) {
-                    //throw new RuntimeException(e);
-                    Toast.makeText(MainActivity.this,"no se ha escrito", Toast.LENGTH_LONG).show();
-                } catch (IOException e) {
-                    throw new RuntimeException(e);
-                }
-
-
-            }
-        });
-
-        texto = findViewById(R.id.textfield);
-
-        webView.loadUrl("https://www.google.com");
     }
 
-
-
+    // Muestra un mensaje en forma de Toast
     private void muestraToast(String text) {
         Toast.makeText(this, text, Toast.LENGTH_SHORT).show();
     }
@@ -162,6 +166,7 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onResume() {
         super.onResume();
+        // Registra el listener del sensor cuando la actividad está en primer plano
         if (sensorHumedad != null) {
             sensorManager.registerListener(listener, sensorHumedad, SensorManager.SENSOR_DELAY_NORMAL);
         }
@@ -170,23 +175,23 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onPause() {
         super.onPause();
+        // Libera el listener del sensor cuando la actividad no está en primer plano
         if (sensorHumedad != null) {
             sensorManager.unregisterListener(listener);
         }
     }
 
+    // Comprueba si hay conexión a Internet
     private boolean comprobarInternet() {
         ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
         android.net.Network network = connectivityManager.getActiveNetwork();
         if (network != null) {
+            // Verifica los tipos de conexión disponibles (WiFi, celular o Ethernet)
             NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network);
             return capabilities != null && (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
                     capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
                     capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
         }
-
-        return false;
+        return false; // No hay conexión
     }
-
-
 }
