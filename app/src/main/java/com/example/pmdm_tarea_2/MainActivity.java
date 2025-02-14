@@ -99,14 +99,14 @@ public class MainActivity extends AppCompatActivity {
 
     // Configura el botón para guardar datos en SharedPreferences
     private void cargarBotonGuardar() {
-        botonGuardar = findViewById(R.id.botonGuardar);
-        botonGuardar.setOnClickListener(new View.OnClickListener() {
+        botonGuardar = findViewById(R.id.botonGuardar);  //Usa findViewById para asociar el botón en el código con el botón definido en el XML (R.id.botonGuardar).
+        botonGuardar.setOnClickListener(new View.OnClickListener() {  //Asigna un evento de clic al botón.
             @Override
             public void onClick(View view) {
                 String datos = texto.getText().toString(); // Obtiene el texto introducido por el usuario
-                if (!texto.getText().toString().isEmpty()) {
+                if (!texto.getText().toString().isEmpty()) {  //Verifica que el usuario haya escrito algo antes de guardar.
                     // Guarda el texto en SharedPreferences
-                    SharedPreferences preferences = getSharedPreferences("MisPreferencias", Context.MODE_PRIVATE);
+                    SharedPreferences preferences = getSharedPreferences("MisPreferencias", Context.MODE_PRIVATE); //Crea o accede a las preferencias llamadas "MisPreferencias".
                     SharedPreferences.Editor editor = preferences.edit();
                     editor.putString("textoGuardado", datos);
                     editor.apply(); //aplica los cambios
@@ -115,6 +115,7 @@ public class MainActivity extends AppCompatActivity {
                     Toast.makeText(MainActivity.this, "Texto guardado", Toast.LENGTH_LONG).show();
                     texto.setText(""); // Limpia el campo de texto
                 } else {
+                    //muestra un Toast indicando que no has intrododucido nada.
                     Toast.makeText(MainActivity.this, "Debes introducir texto", Toast.LENGTH_LONG).show();
                 }
             }
