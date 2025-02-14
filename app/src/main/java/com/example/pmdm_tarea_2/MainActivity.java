@@ -185,11 +185,12 @@ public class MainActivity extends AppCompatActivity {
 
     // Comprueba si hay conexión a Internet
     private boolean comprobarInternet() {
-        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE);
-        android.net.Network network = connectivityManager.getActiveNetwork();
-        if (network != null) {
+        //ConnectivityManager es una clase que maneja el estado de la red.
+        ConnectivityManager connectivityManager = (ConnectivityManager) getSystemService(Context.CONNECTIVITY_SERVICE); //obtiene el servicio del sistema que gestiona las conexiones.
+        android.net.Network network = connectivityManager.getActiveNetwork(); //getActiveNetwork() obtiene la red actualmente en uso.
+        if (network != null) { //Si capabilities == null, la conexión no tiene capacidades activas.
             // Verifica los tipos de conexión disponibles (WiFi, celular o Ethernet)
-            NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network);
+            NetworkCapabilities capabilities = connectivityManager.getNetworkCapabilities(network); //NetworkCapabilities nos dice cómo está conectado el dispositivo (WiFi, datos móviles, etc.).
             return capabilities != null && (capabilities.hasTransport(NetworkCapabilities.TRANSPORT_WIFI) ||
                     capabilities.hasTransport(NetworkCapabilities.TRANSPORT_CELLULAR) ||
                     capabilities.hasTransport(NetworkCapabilities.TRANSPORT_ETHERNET));
