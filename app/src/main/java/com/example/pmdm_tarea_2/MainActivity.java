@@ -83,12 +83,13 @@ public class MainActivity extends AppCompatActivity {
 
     // Configura el botón de conexión a Internet
     private void cargarBotonConexion() {
-        botonConexion = findViewById(R.id.botonConexion);
-        botonConexion.setOnClickListener(new View.OnClickListener() {
+        //busca en el XML un botón con el ID botonConexion.
+        botonConexion = findViewById(R.id.botonConexion);//Lo almacena en la variable botonConexion para poder usarlo en el código.
+        botonConexion.setOnClickListener(new View.OnClickListener() {  // setOnClickListener permite que el botón haga algo cuando lo presionamos.
             @Override
             public void onClick(View view) {
                 // Comprueba si hay conexión a Internet y muestra un mensaje correspondiente
-                if (comprobarInternet()) {
+                if (comprobarInternet()) {  //Llama a un método llamado comprobarInternet() que revisa si hay conexión a Internet.
                     muestraToast("Hay internet");
                 } else {
                     muestraToast("No hay internet");
